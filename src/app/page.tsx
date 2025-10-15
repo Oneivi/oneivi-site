@@ -2,21 +2,22 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabaseServer";
 import { allPosts } from "contentlayer/generated";
+import type { Post } from "contentlayer/generated";
 import type { Route } from "next";
 
 type ProjectLite = { id: string; title: string; year: number | null; created_at?: string };
 
-export const dynamic = "force-dynamic"; // para que los proyectos se actualicen en SSR
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // 1) BLOG (Contentlayer, build-time)
-  const posts = allPosts
-    .filter((p) => !p.draft)
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
+  // BLOG (Contentlayer, build-time)
+  const published: Post[] = (allPosts as Post[]).filter((p: Post) => !p.draft);
+  const posts: Post[] = [...published]
+    .sort((a: Post, b: Post) => (a.date < b.date ? 1 : -1))
     .slice(0, 3);
-  const postsCount = allPosts.filter((p) => !p.draft).length;
+  const postsCount = published.length;
 
-  // 2) PROYECTOS (Supabase, runtime)
+  // PROYECTOS (Supabase, runtime)
   const supa = supabaseServer();
   const projRes = await supa
     .from("projects_public")
@@ -27,7 +28,6 @@ export default async function HomePage() {
   const latestProjects = (projRes.data ?? []) as ProjectLite[];
   const projectsCount = projRes.count ?? 0;
 
-  // si aún no tienes tabla de consultorías, déjalo fijo
   const consultingCount = 5;
 
   return (
@@ -112,34 +112,29 @@ export default async function HomePage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border bg-white p-4">
             <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Últimos proyectos</div>
-           <ul className="space-y-2 text-sm">
-            {latestProjects.length ? (
-              latestProjects.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={{ pathname: "/projects" }}
-                    className="text-blue-600 hover:underline"
-                  >
-                    • {p.title} {p.year ? `(${p.year})` : ""}
-                  </Link>
-                </li>
-              ))
-            ) : (
-              <li className="text-slate-500">Pronto…</li>
-            )}
-          </ul>
-
+            <ul className="space-y-2 text-sm">
+              {latestProjects.length ? (
+                latestProjects.map((p: ProjectLite) => (
+                  <li key={p.id}>
+                    <Link href={{ pathname: "/projects" }} className="text-blue-600 hover:underline">
+                      • {p.title} {p.year ? `(${p.year})` : ""}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="text-slate-500">Pronto…</li>
+              )}
+            </ul>
           </div>
 
           <div className="rounded-xl border bg-white p-4">
             <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Del blog</div>
             <ul className="space-y-2 text-sm">
               {posts.length ? (
-                posts.map((p) => (
-                  <li key={p.slug}>
-                    <Link href={p.url as Route}>
-                      • {p.title}
-                    </Link>
+                posts.map((p: Post) => (
+                  <li key={p._id}>
+                    {/* Usa slug para construir la URL si no tienes 'url' como computedField */}
+                    <Link href={`/blog/${p.slug}` as Route}>• {p.title}</Link>
                   </li>
                 ))
               ) : (

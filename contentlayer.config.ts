@@ -7,20 +7,24 @@ export const Post = defineDocumentType(() => ({
   contentType: "mdx",
   fields: {
     title: { type: "string", required: true },
-    date: { type: "date", required: true },
-    description: { type: "string" },
-    summary: { type: "string" },
-    tags: { type: "list", of: { type: "string" } },
-    cover: { type: "string" }
+    date:  { type: "date", required: true },
+    draft: { type: "boolean", default: false },
+    summary: { type: "string", required: false },
+    tags: { type: "list", of: { type: "string" } }
   },
   computedFields: {
-    slug: { type: "string", resolve: (d) => d._raw.flattenedPath.replace(/^blog\//, "") }
+    slug: {
+      type: "string",
+      resolve: (doc) => doc._raw.flattenedPath.replace(/^blog\//, "")
+    },
+    url: {
+      type: "string",
+      resolve: (doc) => `/blog/${doc._raw.flattenedPath.replace(/^blog\//, "")}`
+    }
   }
 }));
 
 export default makeSource({
-  contentDirPath: "src/content",
+  contentDirPath: "content",
   documentTypes: [Post],
-  // opcional si ya agregaste el alias
-  disableImportAliasWarning: true
 });
