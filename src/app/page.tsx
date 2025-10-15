@@ -1,103 +1,159 @@
-import Image from "next/image";
+// src/app/page.tsx
+import Link from "next/link";
+import { supabaseServer } from "@/lib/supabaseServer";
+import { allPosts } from "contentlayer/generated";
+import type { Route } from "next";
 
-export default function Home() {
+type ProjectLite = { id: string; title: string; year: number | null; created_at?: string };
+
+export const dynamic = "force-dynamic"; // para que los proyectos se actualicen en SSR
+
+export default async function HomePage() {
+  // 1) BLOG (Contentlayer, build-time)
+  const posts = allPosts
+    .filter((p) => !p.draft)
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 3);
+  const postsCount = allPosts.filter((p) => !p.draft).length;
+
+  // 2) PROYECTOS (Supabase, runtime)
+  const supa = supabaseServer();
+  const projRes = await supa
+    .from("projects_public")
+    .select("id, title, year, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const latestProjects = (projRes.data ?? []) as ProjectLite[];
+  const projectsCount = projRes.count ?? 0;
+
+  // si aún no tienes tabla de consultorías, déjalo fijo
+  const consultingCount = 5;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <section className="grid gap-10 md:grid-cols-2 md:items-center">
+      {/* IZQUIERDA */}
+      <div className="space-y-6">
+        <div className="inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1 text-xs text-slate-600">
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          Disponible para proyectos y consultoría
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
+          Hola, soy <span className="text-blue-600">Jose Oneivi</span>
+        </h1>
+
+        <p className="max-w-prose text-base leading-7 text-slate-700">
+          IT Superintendent @ DAS Medical. Desarrollo con Next.js, Supabase, Python y Electron.
+          También diseño e implemento redes empresariales (Ruckus) e integraciones con ERP.
+        </p>
+
+        <ul className="grid gap-2 text-sm text-slate-700">
+          <li>• {projectsCount}+ proyectos entregados</li>
+          <li>• Especialidad: Next.js 15 (App Router), Supabase/Postgres, Electron</li>
+          <li>• Infra: Ruckus Wi-Fi, Acumatica ERP, impresión Zebra ZT411</li>
+        </ul>
+
+        <div className="flex flex-wrap gap-3">
+          <Link href="/blog" className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-white shadow-sm transition hover:bg-blue-700">
+            Leer el blog
+          </Link>
+          <Link href="/projects" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 shadow-sm transition hover:bg-slate-50">
+            Ver proyectos
+          </Link>
+          <Link href="/cv" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 shadow-sm transition hover:bg-slate-50">
+            Ver CV
+          </Link>
+          <Link href="/contacto" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 shadow-sm transition hover:bg-slate-50">
+            Contacto
+          </Link>
+        </div>
+
+        <ul className="flex flex-wrap gap-2 text-xs text-slate-500">
+          <li className="rounded-full bg-slate-100 px-2 py-1">Next.js 15</li>
+          <li className="rounded-full bg-slate-100 px-2 py-1">TypeScript</li>
+          <li className="rounded-full bg-slate-100 px-2 py-1">Supabase</li>
+          <li className="rounded-full bg-slate-100 px-2 py-1">Python</li>
+          <li className="rounded-full bg-slate-100 px-2 py-1">Electron</li>
+          <li className="rounded-full bg-slate-100 px-2 py-1">Ruckus/Wi-Fi</li>
+        </ul>
+      </div>
+
+      {/* DERECHA */}
+      <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 p-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Stack</p>
+              <p className="mt-1 font-medium">Next.js · React · TypeScript · Python · Electron</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Infra</p>
+              <p className="mt-1 font-medium">Supabase/Postgres · Ruckus Wi-Fi · Acumatica ERP · Zebra</p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-lg border bg-white p-3">
+              <div className="text-xs text-slate-500">Proyectos</div>
+              <div className="text-2xl font-semibold">{projectsCount}</div>
+            </div>
+            <div className="rounded-lg border bg-white p-3">
+              <div className="text-xs text-slate-500">Artículos</div>
+              <div className="text-2xl font-semibold">{postsCount}</div>
+            </div>
+            <div className="rounded-lg border bg-white p-3">
+              <div className="text-xs text-slate-500">Consultorías</div>
+              <div className="text-2xl font-semibold">{consultingCount}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border bg-white p-4">
+            <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Últimos proyectos</div>
+           <ul className="space-y-2 text-sm">
+            {latestProjects.length ? (
+              latestProjects.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={{ pathname: "/projects" }}
+                    className="text-blue-600 hover:underline"
+                  >
+                    • {p.title} {p.year ? `(${p.year})` : ""}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <li className="text-slate-500">Pronto…</li>
+            )}
+          </ul>
+
+          </div>
+
+          <div className="rounded-xl border bg-white p-4">
+            <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Del blog</div>
+            <ul className="space-y-2 text-sm">
+              {posts.length ? (
+                posts.map((p) => (
+                  <li key={p.slug}>
+                    <Link href={p.url as Route}>
+                      • {p.title}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="text-slate-500">Pronto…</li>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border bg-slate-50 p-4 text-sm">
+          ¿Buscas ayuda con un proyecto?{" "}
+          <Link href="/contacto" className="font-medium text-blue-700 underline">Hablemos</Link>.
+        </div>
+      </div>
+    </section>
   );
 }
