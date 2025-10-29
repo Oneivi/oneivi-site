@@ -1,0 +1,130 @@
+---
+title: "Introducción a OpenMP y Computación Paralela en Supercomputadoras"
+date: "2025-10-29"
+summary: "Resumen del taller de certificación OpenMP realizado con el supercomputador guane1, explorando paralelismo, NUMA y modelos de consistencia de memoria."
+tags: ["Ingeniería", "Tecnología", "OpenMP", "Lenguaje C", "Super Computadoras"]
+cover: "/images/guane.jpg"
+---
+# Introducción a OpenMP y Computación Paralela
+
+Este artículo resume mi experiencia en el **taller de certificación sobre OpenMP y Supercomputación**, impartido por el profesor **Robinson Rivas Suárez** como parte del programa [SC-CAMP 2025](https://sc-camp.org/2025/index.html).  
+Durante las sesiones, aprendimos a usar **OpenMP** en entornos de memoria compartida y a ejecutar programas paralelos en el supercomputador guane1 localizado en **Colombia**.
+
+---
+
+## ¿Por qué es importante la supercomputación?
+
+La **supercomputación** permite resolver problemas que serían imposibles o extremadamente lentos en computadoras convencionales.  
+Desde el modelado climático hasta la inteligencia artificial o la simulación molecular, estos sistemas aprovechan **miles de núcleos de CPU o GPU** trabajando en paralelo.
+
+Sin embargo, escalar el poder de cómputo no es trivial: entran en juego factores como la **coherencia de memoria**, la **comunicación entre nodos** y la **eficiencia del software paralelo**.
+
+---
+
+## Conceptos clave del taller
+
+### 1. Programación paralela
+
+Consiste en dividir una tarea en múltiples subprocesos o hilos que se ejecutan simultáneamente. En el contexto de OpenMP, estos hilos comparten la memoria del proceso principal.
+
+### 2. OpenMP
+
+[OpenMP](https://www.openmp.org/) es el **estándar de facto** para programar en arquitecturas de memoria compartida (como CPUs multinúcleo).  
+Permite paralelizar programas escritos en **C** de forma simple, utilizando directivas `#pragma`.
+
+Ejemplo básico:
+
+```c
+#pragma omp parallel
+{
+  printf("Hola desde un hilo\n");
+}
+```
+---
+
+### 3. Control de hilos
+
+La cantidad de hilos se puede definir desde el entorno del sistema operativo mediante la variable:
+
+```bash
+export OMP_NUM_THREADS=8
+```
+
+OpenMP gestiona automáticamente variables **privadas** y **compartidas**, pero el programador debe evitar **race conditions** y procurar un buen **balance de carga** entre hilos.
+
+---
+
+### 4. Ejemplo práctico con tareas
+
+El siguiente ejemplo muestra cómo crear múltiples tareas independientes que serán ejecutadas por distintos hilos, demostrando el uso del **paralelismo de tareas**:
+
+```c
+// tasks_demo.c
+#include <stdio.h>
+#include <omp.h>
+
+void work(int k){
+  volatile double x=0;
+  for (int i=0;i<100000 + (k%100000);++i) x+=i*0.000001;
+}
+
+int main(){
+  double t0=omp_get_wtime();
+  #pragma omp parallel
+  #pragma omp single
+  {
+    for(int i=0;i<200;i++){
+      #pragma omp task
+      work(i);
+    }
+    #pragma omp taskwait
+  }
+  double t1=omp_get_wtime();
+  printf("tasks time=%.3f s\n", t1-t0);
+}
+```
+
+---
+
+## Experimentos en el supercomputador Guane1
+
+Durante la práctica final ejecutada en **Guane1**, analicé el impacto del **modelo de consistencia de memoria (MCP)**, la **afinidad CPU/memoria** y la **arquitectura NUMA** sobre un *benchmark* intensivo en memoria (*memory-bound*).
+
+### Configuración de pruebas
+
+- `reduction(+:x)` con *first-touch* paralelo  
+- 8 hilos físicos vs. 16 (HyperThreading)  
+- NUMA local (socket 0/1) vs. nodo completo  
+
+### Resultados
+
+- Mejor rendimiento con **8 hilos físicos**.  
+- NUMA local ≈ rendimiento de 16 hilos totales.  
+- `reduction` ≫ `atomic` ≫ `critical` en eficiencia.
+
+### Conclusiones técnicas
+
+- En cargas *memory-bound*, **HyperThreading no siempre aporta mejora**.  
+- La **localidad de memoria** y la **afinidad CPU/memoria** tienen alto impacto.  
+- Comprender el **modelo de consistencia de memoria** es esencial para evitar **condiciones de carrera (race conditions)**.
+
+---
+
+## Reflexiones finales
+
+Trabajar con un supercomputador es una experiencia distinta: no es tan cinematográfica como en las películas, pero sí igual de fascinante.  
+Requiere entender cómo el **hardware** y el **software** cooperan a gran escala para aprovechar al máximo los recursos de cómputo.
+
+Agradezco a la **Universidad de La Romana**, **SC-CAMP** y al profesor **Robinson Rivas Suárez** por la oportunidad de acceder a **Guane1** y explorar el potencial de la **computación paralela**.
+
+---
+
+## Referencias
+
+- [SC-CAMP 2025](https://sc-camp.org/2025/index.html)  
+- [Consorcio OpenMP](https://www.openmp.org/)  
+- [TOP500 Supercomputers](https://top500.org/)
+
+---
+
+> “Trabajar en una supercomputadora no se trata solo de más poder, sino de entender cómo dividir y coordinar la complejidad.”

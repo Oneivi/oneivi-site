@@ -1,0 +1,140 @@
+---
+title: "Sistemas de Información Gerencial (SIG / MIS)"
+date: "2025-10-27"
+summary: "Resumen práctico y comprensible sobre los Sistemas de Información Gerencial, su arquitectura, evolución e impacto en la ingeniería informática."
+tags: ["Ingeniería", "Tecnología", "SIG", "BI", "Introduccion a la gestion de proyectos de Software"]
+cover: "/images/SIG.png"
+---
+
+# Sistemas de Información Gerencial (SIG / MIS)
+
+## Introducción
+
+En un entorno empresarial cada vez más digital, la información oportuna y confiable es clave para tomar decisiones acertadas.  
+Un **Sistema de Información Gerencial (SIG)** —conocido también como **Management Information System (MIS)**— integra **personas, procesos, datos y tecnología** para transformar los datos operativos en información útil que apoye la **planificación, el control y la toma de decisiones** dentro de una organización.
+
+Su objetivo principal es **convertir datos en conocimiento accionable**, permitiendo a los gerentes monitorear el rendimiento y anticiparse a problemas o oportunidades.
+
+---
+
+## Componentes del SIG
+
+Un SIG combina varios elementos interdependientes:
+
+- **Datos:** provienen de fuentes internas (ventas, inventario, finanzas) y externas (mercado, competencia).
+- **Procesos (ETL/ELT):** captura, limpieza, integración y modelado de los datos.
+- **Tecnología:** bases de datos, data warehouses, herramientas de BI, dashboards y sistemas de alertas.
+- **Personas:** analistas, gerentes, ingenieros de datos y administradores de sistemas.
+
+### Ejemplo práctico
+
+Una cadena de tiendas centraliza sus ventas diarias (TPS).  
+El SIG genera un **dashboard semanal** con indicadores clave (KPI): ventas por sucursal, margen, rotación de inventario y quiebres de stock.  
+Además, emite **alertas automáticas** cuando la rotación cae por debajo del objetivo.
+
+---
+
+## Arquitectura y desarrollo
+
+### Flujo típico de un SIG
+
+1. **Fuentes de datos:** ERP, CRM, POS, archivos Excel o APIs.  
+2. **Ingesta y transformación (ETL/ELT):** extracción, limpieza y normalización.  
+3. **Almacenamiento:** Data Warehouse (modelo estrella o copo de nieve) o Data Lake.  
+4. **Capa semántica / BI:** cubos OLAP, métricas y cálculos.  
+5. **Consumo:** dashboards, reportes, alertas y autoservicio analítico.  
+6. **Gobernanza:** catálogos, control de acceso (RBAC), linaje y auditoría.
+
+### Ciclo de vida
+
+1. **Descubrimiento:** definir objetivos y KPIs.  
+2. **Modelado de datos:** diseñar dimensiones (tiempo, producto, sucursal) y hechos (ventas).  
+3. **Implementación técnica:** ETL, DWH, BI, seguridad y pruebas.  
+4. **Despliegue:** capacitación, documentación y gestión del cambio.  
+5. **Operación:** monitoreo, optimización y evolución del sistema.
+
+### Buenas prácticas
+
+- Definir **KPIs SMART** y mantener un **diccionario de datos**.  
+- Garantizar **calidad de datos** con reglas y validaciones.  
+- Aplicar **seguridad y cumplimiento** (RLS, enmascaramiento de columnas, auditoría).  
+- Escalar eficientemente con **particionamiento y cargas incrementales**.  
+- Automatizar pipelines con **DataOps y CI/CD**.
+
+---
+
+## Tecnologías comunes
+
+| Categoría | Ejemplos |
+|------------|-----------|
+| Bases de datos / DWH | PostgreSQL, SQL Server, BigQuery, Snowflake |
+| ETL / ELT | Airflow, dbt, SSIS |
+| BI / Dashboards | Power BI, Tableau, Looker, Metabase |
+| Alertas / Automatización | Power Automate, Webhooks, emails programados |
+
+---
+
+## Evolución histórica
+
+| Década | Hito principal |
+|---------|----------------|
+| 1950–60s | Mainframes y sistemas TPS para contabilidad y nómina |
+| 1970s | Surge el término MIS: reportes periódicos para gerencia media |
+| 1980s | DSS, EIS y primeras hojas de cálculo (Lotus, Excel) |
+| 1990s | ERP y CRM integrados; Data Warehousing y BI inicial |
+| 2000s | Web, ETL maduros, Cuadro de Mando Integral (BSC) |
+| 2010s | Big Data, nube, BI de autoservicio, tiempo real |
+| 2020s | ML/AI, DataOps, dashboards en tiempo real y analítica asistida por IA |
+
+---
+
+## Impacto en la Ingeniería Informática
+
+### a) Diseño y desarrollo de software
+- Arquitecturas de datos (Data Warehouse, Data Lakehouse).  
+- Integraciones ETL/ELT y APIs entre sistemas empresariales.  
+- Optimización de rendimiento y escalabilidad en la nube.
+
+### b) Ciencia de datos / MLOps
+El MIS proporciona la base de datos limpia y trazable necesaria para aplicar analítica avanzada:  
+**predicción de demanda, detección de fraudes y análisis de comportamiento.**
+
+### c) Seguridad y gobernanza
+- Implementación de **RLS**, **cifrado**, control de acceso por rol.  
+- Cumplimiento normativo (SOX, GDPR, LOPD).
+
+### d) Gestión de proyectos / DevOps
+- Uso de **DataOps y CI/CD** para pipelines y modelos de datos.  
+- Versionado de SQL y pruebas automáticas.
+
+### e) Impacto en el negocio
+- KPIs confiables y decisiones rápidas.  
+- Reducción de costos, optimización del inventario y mejora del servicio al cliente.
+
+---
+
+## Caso práctico: PyME de retail
+
+**Problema:** quiebres de stock y compras sin datos precisos.  
+**Solución:** implementación de un MIS con dashboard de ventas, rotación y margen.  
+**Resultado:**  
+- 15% menos quiebres de stock.  
+- 8% de aumento en margen gracias a precios dinámicos y reposición optimizada.
+
+---
+
+## Conclusión
+
+Los **Sistemas de Información Gerencial** son el corazón del análisis empresarial moderno.  
+Permiten a las organizaciones **convertir datos dispersos en inteligencia útil**, impulsar decisiones basadas en evidencia y crear una cultura organizacional centrada en la información.
+
+---
+
+## Referencias y recursos
+
+- Laudon, K. C. & Laudon, J. P. *Management Information Systems*.  
+- Power BI, Tableau, Looker, Metabase (herramientas BI populares).  
+- [Guion de exposición original en Notion](https://www.notion.so/Guion-expo-28512d9f1e8380afac66f1ca97e8285e?source=copy_link)
+
+---
+

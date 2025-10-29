@@ -1,24 +1,77 @@
+// src/app/blog/[slug]/page.tsx
+import Image from "next/image";
 import { allPosts, type Post } from "contentlayer/generated";
 import { notFound } from "next/navigation";
-import { useMDXComponent } from "next-contentlayer/hooks";
+import { Mdx } from "@/components/Mdx";
 
-export const dynamic = "force-static";
+type Params = { slug: string };
 
-export function generateStaticParams() {
-  return allPosts.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams(): Promise<Params[]> {
+  return allPosts.map((p: Post) => ({ slug: p.slug }));
 }
 
-export default function PostPage({ params }: { params: { slug: string } }) {
-  const post = (allPosts as Post[]).find((p) => p.slug === params.slug);
+function fmtDate(iso: string) {
+  return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
+}
+
+export default function BlogPostPage({ params }: { params: Params }) {
+  const post = allPosts.find((p) => p.slug === params.slug);
   if (!post) return notFound();
 
-  const MDXContent = useMDXComponent(post.body.code);
+  const summary = post.summary ?? post.description ?? "";
+  const minutes = typeof post.readingTime === "number" ? post.readingTime : undefined;
 
   return (
-    <article className="prose max-w-none">
-      <h1>{post.title}</h1>
-      <p className="text-sm text-slate-500">{new Date(post.date).toLocaleDateString()}</p>
-      <MDXContent />
-    </article>
+    <main className="mx-auto w-full max-w-3xl px-4 py-10">
+      {/* Header */}
+      <header className="mb-8">
+        <h1 className="text-3xl/tight font-bold tracking-tight">{post.title}</h1>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
+          <span>{fmtDate(post.date)}</span>
+          {minutes ? (
+            <>
+              <span>·</span>
+              <span>{minutes} min de lectura</span>
+            </>
+          ) : null}
+          {post.tags?.length ? (
+            <>
+              <span>·</span>
+              <ul className="flex flex-wrap gap-1">
+                {post.tags.map((t) => (
+                  <li
+                    key={t}
+                    className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </div>
+
+        {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
+
+        {post.cover ? (
+          <div className="mt-6 overflow-hidden rounded-xl border">
+            <Image
+              src={post.cover}
+              alt={post.title}
+              width={1280}
+              height={720}
+              className="h-auto w-full"
+              priority
+            />
+          </div>
+        ) : null}
+      </header>
+
+      {/* Contenido MDX */}
+      <article className="prose prose-slate max-w-none prose-headings:font-semibold prose-h2:mt-10 prose-h3:mt-6 prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:pl-4">
+        <Mdx code={post.body.code} />
+      </article>
+    </main>
   );
 }

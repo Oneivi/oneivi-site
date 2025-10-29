@@ -1,51 +1,92 @@
-// src/app/projects/page.tsx
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabaseServer";
 
-type Row = { id: string; title: string; slug: string | null; year: number | null; created_at: string };
+export const revalidate = 60;
 
-export const revalidate = 60; // cache ligera (o usa dynamic="force-dynamic")
+type Row = {
+  id: string;
+  title: string;
+  slug: string | null;
+  year: number | null;
+  created_at: string;
+};
 
 export default async function ProjectsPage() {
   const supa = supabaseServer();
-
-  const { data, count, error } = await supa
+  const { data, error } = await supa
     .from("projects_public")
-    .select("id, title, slug, year, created_at", { count: "exact" })
-    .order("created_at", { ascending: false });
+    .select("id, title, slug, year, created_at")
+    .order("year", { ascending: false });
 
   if (error) {
-    return <div className="text-red-600">Error: {error.message}</div>;
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
+          Hubo un problema cargando los proyectos: {error.message}
+        </div>
+      </div>
+    );
   }
 
-  const rows = (data ?? []) as Row[];
+  if (!data?.length) {
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="rounded-xl border border-dashed p-8 text-center">
+          <h2 className="text-xl font-semibold">Aún no hay proyectos publicados</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Cuando agregues proyectos en Supabase, aparecerán aquí.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Proyectos</h1>
-        <p className="text-slate-600">{count ?? 0} publicados</p>
+    <section className="mx-auto max-w-5xl p-6">
+      <header className="mb-6 flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Proyectos</h1>
+          <p className="mt-1 text-sm text-slate-600">Algunos de los trabajos recientes.</p>
+        </div>
       </header>
 
-      {rows.length === 0 ? (
-        <div className="text-slate-500">Pronto…</div>
-      ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((p) => (
-            <li key={p.id} className="rounded-xl border bg-white p-4">
-              <h3 className="font-medium">
-                <Link
-                  className="text-blue-600 hover:underline"
-                  href={p.slug ? { pathname: "/projects/[slug]", query: { slug: p.slug } } : { pathname: "/projects" }}
-                >
-                  {p.title}
-                </Link>
-              </h3>
-              <div className="text-sm text-slate-500">{p.year ?? "s/f"}</div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/*
+        {data.map((p: Row) => (
+          <li key={p.id}>
+            {p.slug ? (
+              <Link href={`/projects/${p.slug}`} className="group block h-full">
+                <article className="h-full rounded-2xl border bg-white/70 p-5 shadow-sm ring-1 ring-black/5 transition
+                                     hover:-translate-y-0.5 hover:shadow-md">
+                  <div className="mb-3 flex items-center gap-2">
+                    {p.year && (
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium
+                                        text-slate-700">
+                        Año {p.year}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-semibold leading-snug text-slate-900 group-hover:text-blue-700">
+                    {p.title}
+                  </h3>
+                  <div className="mt-4 text-xs text-slate-500">
+                    Actualizado {new Date(p.created_at).toLocaleDateString("es-DO")}
+                  </div>
+                </article>
+              </Link>
+            ) : (
+              <article className="rounded-2xl border bg-white/70 p-5 shadow-sm ring-1 ring-black/5 opacity-70">
+                <h3 className="text-base font-semibold">{p.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">Sin slug</p>
+              </article>
+            )}
+          </li>
+        ))}*/}
+      </ul>
+
+      <span>Pronto...</span>
+
+
+    </section>
   );
 }

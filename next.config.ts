@@ -1,7 +1,9 @@
+// next.config.ts
 import type { NextConfig } from "next";
+import { withContentlayer } from "next-contentlayer";
 
-const nextConfig: NextConfig = {
-  typedRoutes: true, // ya no en "experimental"
+const config: NextConfig = {
+  experimental: { forceSwcTransforms: true },
 };
 
-export default nextConfig;
+export default withContentlayer(config);
