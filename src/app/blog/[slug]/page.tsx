@@ -6,16 +6,29 @@ import { Mdx } from "@/components/Mdx";
 
 type Params = { slug: string };
 
-// SSG de rutas
+// Genera rutas estáticas para el blog
 export function generateStaticParams(): Params[] {
   return allPosts.map((p: Post) => ({ slug: p.slug }));
 }
 
-function fmtDate(iso: string) {
+function fmtDate(iso?: string) {
+  if (!iso) return "";
   return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
 }
 
-// Next 15: params es Promise -> usar await
+// Campos opcionales del frontmatter que quizás no estén en tu schema de Contentlayer
+type Extra = Partial<{
+  summary: string;
+  tags: string[];
+  cover: string;
+  readingTime: number;
+}>;
+
+// Narrowing sólido: asegura que tenemos un Post o hace 404
+function assertPost(p: Post | undefined): asserts p is Post {
+  if (!p) notFound();
+}
+
 export default async function BlogPostPage({
   params,
 }: {
@@ -23,27 +36,24 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
 
-  // ⬇️ Forzamos el tipo para que TS no infiera 'never'
   const maybePost: Post | undefined =
     allPosts.find((p) => p.slug === slug) ??
     allPosts.find((p) => p._raw.flattenedPath.replace(/^blog\//, "") === slug);
 
-  if (!maybePost) return notFound();
+  // Si no existe, 404; a partir de aquí TS sabe que es Post
+  assertPost(maybePost);
+  const post = maybePost as Post & Extra;
 
-  // ⬇️ A partir de aquí 'post' es definitivamente Post
-  const post: Post = maybePost;
-
-  // Campos opcionales del schema (evita 'any')
-  const summary = (post as Partial<Post> & { summary?: string }).summary ?? post.description ?? "";
+  const summary = post.summary ?? post.description ?? "";
   const minutes =
-    typeof (post as unknown as { readingTime?: number }).readingTime === "number"
-      ? (post as unknown as { readingTime: number }).readingTime
-      : undefined;
+    typeof post.readingTime === "number" ? post.readingTime : undefined;
+  const tags = Array.isArray(post.tags) ? post.tags : [];
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
       <header className="mb-8">
         <h1 className="text-3xl/tight font-bold tracking-tight">{post.title}</h1>
+
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
           {post.date ? <span>{fmtDate(post.date)}</span> : null}
           {minutes ? (
@@ -52,12 +62,11 @@ export default async function BlogPostPage({
               <span>{minutes} min de lectura</span>
             </>
           ) : null}
-          {Array.isArray((post as unknown as { tags?: string[] }).tags) &&
-          (post as unknown as { tags: string[] }).tags.length ? (
+          {tags.length ? (
             <>
               <span>·</span>
               <ul className="flex flex-wrap gap-1">
-                {(post as unknown as { tags: string[] }).tags.map((t) => (
+                {tags.map((t) => (
                   <li
                     key={t}
                     className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
@@ -72,10 +81,10 @@ export default async function BlogPostPage({
 
         {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
 
-        {(post as unknown as { cover?: string }).cover ? (
+        {post.cover ? (
           <div className="mt-6 overflow-hidden rounded-xl border">
             <Image
-              src={(post as unknown as { cover: string }).cover}
+              src={post.cover}
               alt={post.title}
               width={1280}
               height={720}
