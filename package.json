@@ -33,9 +33,12 @@
     "typescript": "^5.9.3"
   },
   "pnpm": {
-    "overrides": {
-      "mdast-util-gfm-table": "1.0.7",
-      "mdast-util-gfm": "2.0.2"
-    }
+  "overrides": {
+    "@mdx-js/mdx": "2.3.0",
+    "@mdx-js/esbuild": "2.3.0",
+    "esbuild": "0.18.20",
+    "mdast-util-gfm-table": "1.0.7",
+    "mdast-util-gfm": "2.0.2"
   }
+}
 }

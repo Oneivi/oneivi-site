@@ -1,8 +1,8 @@
 // contentlayer.config.ts
-import { makeSource, defineDocumentType } from "contentlayer/source-files";
+import { makeSource, defineDocumentType } from "contentlayer2/source-files";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-var words = (s) => s.trim().split(/\s+/g).length;
+import readingTime from "reading-time";
 var Post = defineDocumentType(() => ({
   name: "Post",
   filePathPattern: `blog/**/*.mdx`,
@@ -29,9 +29,8 @@ var Post = defineDocumentType(() => ({
       resolve: (doc) => `/blog/${doc._raw.flattenedPath.replace(/^blog\//, "")}`
     },
     readingTime: {
-      // <- nuevo
       type: "number",
-      resolve: (doc) => Math.max(1, Math.ceil(words(doc.body.raw) / 220))
+      resolve: (doc) => Math.max(1, Math.round(readingTime(doc.body.raw).minutes))
     }
   }
 }));
@@ -47,4 +46,4 @@ export {
   Post,
   contentlayer_config_default as default
 };
-//# sourceMappingURL=compiled-contentlayer-config-OSCUB3QK.mjs.map
+//# sourceMappingURL=compiled-contentlayer-config-RAGPZQDF.mjs.map
