@@ -3,6 +3,8 @@ import Image from "next/image";
 import { allPosts, type Post } from "contentlayer/generated";
 import { notFound } from "next/navigation";
 import { Mdx } from "@/components/Mdx";
+export const dynamic = "force-dynamic";   
+export const revalidate = 60; 
 
 type Params = { slug: string };
 
