@@ -6,7 +6,8 @@ import { Mdx } from "@/components/Mdx";
 
 type Params = { slug: string };
 
-export async function generateStaticParams(): Promise<Params[]> {
+// Síncrona y sin Promise
+export function generateStaticParams(): Params[] {
   return allPosts.map((p: Post) => ({ slug: p.slug }));
 }
 
