@@ -9,9 +9,12 @@ function formatDate(iso: string) {
 }
 
 export default function BlogPage() {
-  const posts = [...allPosts]
-    .filter((p: Post) => p.published !== false)
-    .sort((a: Post, b: Post) => compareDesc(parseISO(a.date), parseISO(b.date)));
+  const posts = allPosts
+    .filter((p) => !p.draft) // <- antes: p.published
+    .sort(
+      (a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
   return (
     <section className="space-y-8">

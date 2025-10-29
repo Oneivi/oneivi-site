@@ -14,16 +14,18 @@ function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<Params> }) {
-  const { slug } = await params; // ← satisface el constraint de Next
+export default function BlogPostPage({ params }: { params: Params }) {
+  const { slug } = params;
+
   const post =
     allPosts.find((p) => p.slug === slug) ??
     allPosts.find((p) => p._raw.flattenedPath.replace(/^blog\//, "") === slug);
 
   if (!post) return notFound();
 
-  const summary = post.summary ?? post.description ?? "";
-  const minutes = typeof post.readingTime === "number" ? post.readingTime : undefined;
+  const summary = (post as any).summary ?? post.description ?? "";
+  const minutes =
+    typeof (post as any).readingTime === "number" ? (post as any).readingTime : undefined;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
@@ -32,11 +34,11 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
           <span>{fmtDate(post.date)}</span>
           {minutes ? (<><span>·</span><span>{minutes} min de lectura</span></>) : null}
-          {post.tags?.length ? (
+          {Array.isArray((post as any).tags) && (post as any).tags.length ? (
             <>
               <span>·</span>
               <ul className="flex flex-wrap gap-1">
-                {post.tags.map((t) => (
+                {(post as any).tags.map((t: string) => (
                   <li key={t} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
                     {t}
                   </li>
@@ -46,9 +48,9 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           ) : null}
         </div>
         {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
-        {post.cover ? (
+        {(post as any).cover ? (
           <div className="mt-6 overflow-hidden rounded-xl border">
-            <Image src={post.cover} alt={post.title} width={1280} height={720} className="h-auto w-full" priority />
+            <Image src={(post as any).cover} alt={post.title} width={1280} height={720} className="h-auto w-full" priority />
           </div>
         ) : null}
       </header>
