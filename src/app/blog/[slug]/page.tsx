@@ -6,6 +6,7 @@ import { Mdx } from "@/components/Mdx";
 
 type Params = { slug: string };
 
+// SSG de rutas
 export function generateStaticParams(): Params[] {
   return allPosts.map((p: Post) => ({ slug: p.slug }));
 }
@@ -14,14 +15,19 @@ function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
 }
 
-export default function BlogPostPage({ params }: { params: Params }) {
-  const { slug } = params;
+//  Next 15: params es Promise -> usar await
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { slug } = await params;
 
   const post =
     allPosts.find((p) => p.slug === slug) ??
     allPosts.find((p) => p._raw.flattenedPath.replace(/^blog\//, "") === slug);
 
-  if (!post) return notFound();
+  if (!post) notFound();
 
   const summary = (post as any).summary ?? post.description ?? "";
   const minutes =
@@ -33,13 +39,21 @@ export default function BlogPostPage({ params }: { params: Params }) {
         <h1 className="text-3xl/tight font-bold tracking-tight">{post.title}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
           <span>{fmtDate(post.date)}</span>
-          {minutes ? (<><span>·</span><span>{minutes} min de lectura</span></>) : null}
+          {minutes ? (
+            <>
+              <span>·</span>
+              <span>{minutes} min de lectura</span>
+            </>
+          ) : null}
           {Array.isArray((post as any).tags) && (post as any).tags.length ? (
             <>
               <span>·</span>
               <ul className="flex flex-wrap gap-1">
                 {(post as any).tags.map((t: string) => (
-                  <li key={t} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+                  <li
+                    key={t}
+                    className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                  >
                     {t}
                   </li>
                 ))}
@@ -50,7 +64,14 @@ export default function BlogPostPage({ params }: { params: Params }) {
         {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
         {(post as any).cover ? (
           <div className="mt-6 overflow-hidden rounded-xl border">
-            <Image src={(post as any).cover} alt={post.title} width={1280} height={720} className="h-auto w-full" priority />
+            <Image
+              src={(post as any).cover}
+              alt={post.title}
+              width={1280}
+              height={720}
+              className="h-auto w-full"
+              priority
+            />
           </div>
         ) : null}
       </header>
