@@ -6,29 +6,16 @@ import { Mdx } from "@/components/Mdx";
 
 type Params = { slug: string };
 
-// Genera rutas estáticas para el blog
+// SSG de rutas
 export function generateStaticParams(): Params[] {
   return allPosts.map((p: Post) => ({ slug: p.slug }));
 }
 
-function fmtDate(iso?: string) {
-  if (!iso) return "";
+function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
 }
 
-// Campos opcionales del frontmatter que quizás no estén en tu schema de Contentlayer
-type Extra = Partial<{
-  summary: string;
-  tags: string[];
-  cover: string;
-  readingTime: number;
-}>;
-
-// Narrowing sólido: asegura que tenemos un Post o hace 404
-function assertPost(p: Post | undefined): asserts p is Post {
-  if (!p) notFound();
-}
-
+// ✅ Next 15: params es Promise -> usar await
 export default async function BlogPostPage({
   params,
 }: {
@@ -36,37 +23,33 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
 
-  const maybePost: Post | undefined =
+  const post =
     allPosts.find((p) => p.slug === slug) ??
     allPosts.find((p) => p._raw.flattenedPath.replace(/^blog\//, "") === slug);
 
-  // Si no existe, 404; a partir de aquí TS sabe que es Post
-  assertPost(maybePost);
-  const post = maybePost as Post & Extra;
+  if (!post) notFound();
 
-  const summary = post.summary ?? post.description ?? "";
+  const summary = (post as any).summary ?? post.description ?? "";
   const minutes =
-    typeof post.readingTime === "number" ? post.readingTime : undefined;
-  const tags = Array.isArray(post.tags) ? post.tags : [];
+    typeof (post as any).readingTime === "number" ? (post as any).readingTime : undefined;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
       <header className="mb-8">
         <h1 className="text-3xl/tight font-bold tracking-tight">{post.title}</h1>
-
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-          {post.date ? <span>{fmtDate(post.date)}</span> : null}
+          <span>{fmtDate(post.date)}</span>
           {minutes ? (
             <>
               <span>·</span>
               <span>{minutes} min de lectura</span>
             </>
           ) : null}
-          {tags.length ? (
+          {Array.isArray((post as any).tags) && (post as any).tags.length ? (
             <>
               <span>·</span>
               <ul className="flex flex-wrap gap-1">
-                {tags.map((t) => (
+                {(post as any).tags.map((t: string) => (
                   <li
                     key={t}
                     className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
@@ -78,13 +61,11 @@ export default async function BlogPostPage({
             </>
           ) : null}
         </div>
-
         {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
-
-        {post.cover ? (
+        {(post as any).cover ? (
           <div className="mt-6 overflow-hidden rounded-xl border">
             <Image
-              src={post.cover}
+              src={(post as any).cover}
               alt={post.title}
               width={1280}
               height={720}
