@@ -1,7 +1,6 @@
 // src/components/Mdx.tsx
 "use client";
-
-import { useMDXComponent } from "next-contentlayer/hooks";
+import { useMDXComponent } from "next-contentlayer2/hooks";
 
 export function Mdx({ code }: { code: string }) {
   const Component = useMDXComponent(code);
