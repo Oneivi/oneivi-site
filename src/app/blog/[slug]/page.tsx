@@ -15,7 +15,7 @@ function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("es-DO", { dateStyle: "long" }).format(new Date(iso));
 }
 
-//  Next 15: params es Promise -> usar await
+// Next 15: params es Promise -> usar await
 export default async function BlogPostPage({
   params,
 }: {
@@ -23,33 +23,41 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
 
-  const post =
+  // ⬇️ Forzamos el tipo para que TS no infiera 'never'
+  const maybePost: Post | undefined =
     allPosts.find((p) => p.slug === slug) ??
     allPosts.find((p) => p._raw.flattenedPath.replace(/^blog\//, "") === slug);
 
-  if (!post) notFound();
+  if (!maybePost) return notFound();
 
-  const summary = (post as any).summary ?? post.description ?? "";
+  // ⬇️ A partir de aquí 'post' es definitivamente Post
+  const post: Post = maybePost;
+
+  // Campos opcionales del schema (evita 'any')
+  const summary = (post as Partial<Post> & { summary?: string }).summary ?? post.description ?? "";
   const minutes =
-    typeof (post as any).readingTime === "number" ? (post as any).readingTime : undefined;
+    typeof (post as unknown as { readingTime?: number }).readingTime === "number"
+      ? (post as unknown as { readingTime: number }).readingTime
+      : undefined;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
       <header className="mb-8">
         <h1 className="text-3xl/tight font-bold tracking-tight">{post.title}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-          <span>{fmtDate(post.date)}</span>
+          {post.date ? <span>{fmtDate(post.date)}</span> : null}
           {minutes ? (
             <>
               <span>·</span>
               <span>{minutes} min de lectura</span>
             </>
           ) : null}
-          {Array.isArray((post as any).tags) && (post as any).tags.length ? (
+          {Array.isArray((post as unknown as { tags?: string[] }).tags) &&
+          (post as unknown as { tags: string[] }).tags.length ? (
             <>
               <span>·</span>
               <ul className="flex flex-wrap gap-1">
-                {(post as any).tags.map((t: string) => (
+                {(post as unknown as { tags: string[] }).tags.map((t) => (
                   <li
                     key={t}
                     className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
@@ -61,11 +69,13 @@ export default async function BlogPostPage({
             </>
           ) : null}
         </div>
+
         {summary ? <p className="mt-3 text-slate-700">{summary}</p> : null}
-        {(post as any).cover ? (
+
+        {(post as unknown as { cover?: string }).cover ? (
           <div className="mt-6 overflow-hidden rounded-xl border">
             <Image
-              src={(post as any).cover}
+              src={(post as unknown as { cover: string }).cover}
               alt={post.title}
               width={1280}
               height={720}
